@@ -20,3 +20,6 @@ spaces = skipMany1 space
 
 parseString :: Parser Value
 parseString = String <$> (char '"' *> (manyTill anyChar $ try $ char '"'))
+
+
+main = getLine >>= parseTest parseString
