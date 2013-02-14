@@ -1,4 +1,4 @@
-module Haskeme(main) where
+module Main(main) where
 
 import Text.Parsec hiding (spaces)
 import Text.Parsec.String
@@ -9,7 +9,7 @@ data Value = Atom String
            | DottedList [Value] Value
            | Number Integer
            | String String
-           | Bool Bool
+           | Bool Bool deriving (Show)
 
 symbol :: Parser Char
 symbol = oneOf "!#$%|*=-/:<=>?@^_~"
