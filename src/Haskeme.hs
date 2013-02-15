@@ -2,6 +2,7 @@ module Main(main) where
 
 import Text.Parsec hiding (spaces)
 import Text.Parsec.String
+import qualified Text.Parsec.Token as P
 import Data.Char
 import Control.Applicative hiding ((<|>), many)
 
@@ -25,23 +26,35 @@ parseString :: Parser Value
 parseString = String <$> (char '"' *> (manyTill anyChar $ try $ char '"'))
 
 parseNumber :: Parser Value
-parseNumber = Number <$> (read <$> many1 digit <* (notFollowedBy notDigit))
+parseNumber = Number <$> (read <$> many1 digit <* notFollowedBy (alphaNum <|> symbol))
 
 parseBool :: Parser Value
 parseBool =  string "#t" *> pure (Bool True)
          <|> string "#f" *> pure (Bool False)
 
 parseAtom :: Parser Value
-parseAtom = Atom <$> ((notFollowedBy digit) *> many (letter <|> digit <|> symbol))
+parseAtom = Atom <$> ((notDigit <|> letter <|> symbol) *> many (letter <|> digit <|> symbol))
 
 
-main = do putStrLn "string:"
-          getLine >>= parseTest parseString
-          putStrLn "number:"
-          getLine >>= parseTest parseNumber
-          putStrLn "bool:"
-          getLine >>= parseTest parseBool
-          putStrLn "atom:"
-          getLine >>= parseTest parseAtom
+parseExpr :: Parser Value
+parseExpr =  parseAtom
+         <|> parseString
+         <|> parseBool
+         <|> parseQuoted
+         <|> char '(' *> (try parseList <|> parseDottedList) <* char ')'
+parseList :: Parser Value
+parseList = List <$> sepBy parseExpr spaces
+
+
+parseDottedList :: Parser Value
+parseDottedList = DottedList <$> (endBy parseExpr spaces)
+                             <*> (char '.' *> spaces *> parseExpr)    
+
+parseQuoted :: Parser Value
+parseQuoted = do
+    char '\''
+    x <- parseExpr
+    pure $ List [Atom "quote", x]
+main = getLine >>= parseTest parseExpr
 
           
