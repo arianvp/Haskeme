@@ -26,7 +26,7 @@ parseString :: Parser Value
 parseString = String <$> (char '"' *> (manyTill anyChar $ try $ char '"'))
 
 parseNumber :: Parser Value
-parseNumber = Number <$> (read <$> many1 digit <* notFollowedBy (alphaNum <|> symbol))
+parseNumber = Number <$> read <$> many1 digit <* notFollowedBy (alphaNum <|> symbol)
 
 parseBool :: Parser Value
 parseBool =  string "#t" *> pure (Bool True)
@@ -36,7 +36,7 @@ parseAtom :: Parser Value
 parseAtom = Atom <$> (notFollowedBy (digit) *> many (letter <|> digit <|> symbol))
 
 parseExpr :: Parser Value
-parseExpr = char '(' *> (try parseList <|> parseDottedList) <* char ')'
+parseExpr = char '(' *> ((try parseDottedList) <|> parseList) <* char ')'
          <|> parseNumber
          <|> parseString
          <|> parseBool
@@ -47,8 +47,8 @@ parseList :: Parser Value
 parseList = List <$> sepBy parseExpr spaces
 
 parseDottedList :: Parser Value
-parseDottedList = DottedList <$> (endBy parseExpr spaces)
-                             <*> (char '.' *> spaces *> parseExpr)    
+parseDottedList = DottedList <$> (endBy parseExpr spaces) <*> (char '.' *> spaces *> parseExpr)    
+
 parseQuoted :: Parser Value
 parseQuoted = List <$> ((Atom "quote") :) <$> (: []) <$> (char '\'' *> parseExpr)
 
