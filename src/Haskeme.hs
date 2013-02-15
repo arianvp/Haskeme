@@ -42,6 +42,7 @@ parseExpr = char '(' *> (try parseList <|> parseDottedList) <* char ')'
          <|> parseBool
          <|> parseQuoted
          <|> parseAtom
+
 parseList :: Parser Value
 parseList = List <$> sepBy parseExpr spaces
 
