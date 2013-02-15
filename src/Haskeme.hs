@@ -33,28 +33,26 @@ parseBool =  string "#t" *> pure (Bool True)
          <|> string "#f" *> pure (Bool False)
 
 parseAtom :: Parser Value
-parseAtom = Atom <$> ((notDigit <|> letter <|> symbol) *> many (letter <|> digit <|> symbol))
-
+parseAtom = Atom <$> (notFollowedBy (digit) *> many (letter <|> digit <|> symbol))
 
 parseExpr :: Parser Value
-parseExpr =  parseAtom
+parseExpr = char '(' *> (try parseList <|> parseDottedList) <* char ')'
+         <|> parseNumber
          <|> parseString
          <|> parseBool
          <|> parseQuoted
-         <|> char '(' *> (try parseList <|> parseDottedList) <* char ')'
+         <|> parseAtom
 parseList :: Parser Value
 parseList = List <$> sepBy parseExpr spaces
-
 
 parseDottedList :: Parser Value
 parseDottedList = DottedList <$> (endBy parseExpr spaces)
                              <*> (char '.' *> spaces *> parseExpr)    
-
 parseQuoted :: Parser Value
-parseQuoted = do
-    char '\''
-    x <- parseExpr
-    pure $ List [Atom "quote", x]
-main = getLine >>= parseTest parseExpr
+parseQuoted = char '\'' *> parseExpr >>= pure . List . ((Atom "quote") :) . (: [])
 
-          
+main = getLine >>= parseTest parseExpr
+  
+
+
+
