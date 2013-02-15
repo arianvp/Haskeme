@@ -49,7 +49,7 @@ parseDottedList :: Parser Value
 parseDottedList = DottedList <$> (endBy parseExpr spaces)
                              <*> (char '.' *> spaces *> parseExpr)    
 parseQuoted :: Parser Value
-parseQuoted = char '\'' *> parseExpr >>= pure . List . ((Atom "quote") :) . (: [])
+parseQuoted = List <$> ((Atom "quote") :) <$> (: []) <$> (char '\'' *> parseExpr)
 
 main = getLine >>= parseTest parseExpr
   
