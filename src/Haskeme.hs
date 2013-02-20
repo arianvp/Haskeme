@@ -20,7 +20,7 @@ spaces :: Parser ()
 spaces = skipMany1 space
 
 notDigit :: Parser Char
-notDigit = satisfy $ not . isDigit
+notDigit = satisfy $ not <$> isDigit
 
 parseString :: Parser Value
 parseString = String <$> (char '"' *> (manyTill anyChar $ try $ char '"'))
@@ -36,7 +36,9 @@ parseAtom :: Parser Value
 parseAtom = Atom <$> (notFollowedBy (digit) *> many (letter <|> digit <|> symbol))
 
 parseExpr :: Parser Value
-parseExpr = char '(' *> ((try parseDottedList) <|> parseList) <* char ')'
+parseExpr =  char '(' *>
+                try parseDottedList <|> parseList
+             <* char ')'
          <|> parseNumber
          <|> parseString
          <|> parseBool

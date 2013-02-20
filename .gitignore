@@ -1,2 +1,3 @@
 *.swp
-dst
+dst/
+dst/*
