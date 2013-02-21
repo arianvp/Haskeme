@@ -1,3 +1,2 @@
 *.swp
-./dst/
-./dst/*
+dist/
