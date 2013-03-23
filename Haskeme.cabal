@@ -11,7 +11,8 @@ data-dir: ""
  
 executable Haskeme
     build-depends: base ==4.5.*, parsec -any
-    main-is: src/Haskeme.hs
+    hs-source-dirs: src
+    main-is: Main.hs
     buildable: True
     other-modules:
  
