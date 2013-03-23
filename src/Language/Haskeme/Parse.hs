@@ -5,16 +5,16 @@ parser
 
 import qualified Language.Haskeme.Lex as L
 import Language.Haskeme.AST
-import Text.Parsec hiding (string)
+import Text.Parsec as P
 import Text.Parsec.String 
 import Control.Applicative ((<$>), (<*>), (*>), (<*))
 
 -- literals
-bool, integer, string, atom :: Parser Expr
-bool       = Bool       <$> L.bool
-integer    = Integer    <$> L.integer
-string     = String     <$> L.stringLiteral
-atom       = Atom       <$> L.identifier
+bool, integer, stringLiteral, atom :: Parser Expr
+bool          = Bool    <$> L.bool
+integer       = Integer <$> L.integer
+stringLiteral = String  <$> L.stringLiteral
+atom          = Atom    <$> L.identifier
 
 -- listlikes
 list, vector, dottedList :: Parser Expr
@@ -27,24 +27,24 @@ quote, quasiquote, unquote, unquoteSplicing :: Parser Expr
 quote            = L.apostrophe  `prefixWith` "quote"
 quasiquote       = L.backtick    `prefixWith` "quasiquote"
 unquote          = L.comma       `prefixWith` "unquote"
-unquoteSplicing  = L.symbol ",@" `prefixWith` "unquote-splicing"
+unquoteSplicing  = P.string ",@" `prefixWith` "unquote-splicing"
 
 a `prefixWith` b = List . ([Atom b] ++) . (:[]) <$> (a *> expr)
 
 expr :: Parser Expr
-expr =  try quote          
+expr =  quote          
     <|> quasiquote     
+    <|> try unquoteSplicing
     <|> unquote        
-    <|> unquoteSplicing
     <|> try list
     <|> dottedList
     <|> vector
-    <|> string
+    <|> stringLiteral
     <|> integer
     <|> bool
     <|> atom
 
-parser = L.whiteSpace *> (many expr) <* eof
+parser = L.whiteSpace *> (P.many expr) <* P.eof
 
 
 
