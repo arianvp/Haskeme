@@ -1,6 +1,7 @@
 module Language.Haskeme.Parse
 (
 parser
+, dottedList
 ) where
 
 import qualified Language.Haskeme.Lex as L
@@ -18,10 +19,10 @@ atom          = Atom    <$> L.identifier
 
 -- listlikes
 list, vector, dottedList :: Parser Expr
-list       = List       <$> L.parens       (expr `sepBy` L.whiteSpace)
-vector     = Vector     <$> L.vectorParens (expr `sepBy` L.whiteSpace)
-dottedList = DottedList <$> L.parens       (expr `endBy` L.whiteSpace)
-                        <*> (L.dot *> L.whiteSpace *> expr)
+list       = L.parens       $ List       <$> (expr `sepBy` L.whiteSpace)
+vector     = L.vectorParens $ Vector     <$> (expr `sepBy` L.whiteSpace)
+dottedList = L.parens       $ DottedList <$> (expr `endBy` L.whiteSpace)
+                                         <*> (L.dot *> expr)
 -- quotes
 quote, quasiquote, unquote, unquoteSplicing :: Parser Expr
 quote            = L.apostrophe  `prefixWith` "quote"
@@ -32,13 +33,13 @@ unquoteSplicing  = P.string ",@" `prefixWith` "unquote-splicing"
 a `prefixWith` b = List . ([Atom b] ++) . (:[]) <$> (a *> expr)
 
 expr :: Parser Expr
-expr =  quote          
+expr = quote          
     <|> quasiquote     
     <|> try unquoteSplicing
     <|> unquote        
     <|> try list
     <|> dottedList
-    <|> vector
+    <|> try vector
     <|> stringLiteral
     <|> integer
     <|> bool

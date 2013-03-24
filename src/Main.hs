@@ -4,5 +4,7 @@ module Main
 import Language.Haskeme.AST
 import Language.Haskeme.Parse
 import Text.Parsec (parseTest)
+import System.Environment
 
-main = getLine >>= parseTest parser
+main = do c <- getArgs
+          parseTest parser (c!!0)
