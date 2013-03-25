@@ -19,10 +19,10 @@ atom          = Atom    <$> L.identifier
 
 -- listlikes
 list, vector, dottedList :: Parser Expr
-list       = L.parens       $ List       <$> (expr `sepBy` L.whiteSpace)
-vector     = L.vectorParens $ Vector     <$> (expr `sepBy` L.whiteSpace)
-dottedList = L.parens       $ DottedList <$> (expr `endBy` L.whiteSpace)
-                                         <*> (L.dot *> expr)
+list       = L.parens       (List       <$> (expr `sepBy` L.whiteSpace))
+vector     = L.vectorParens (Vector     <$> (expr `sepBy` L.whiteSpace))
+dottedList = L.parens       (DottedList <$> (expr `endBy` L.whiteSpace)
+                                        <*> (L.dot *> expr))
 -- quotes
 quote, quasiquote, unquote, unquoteSplicing :: Parser Expr
 quote            = L.apostrophe  `prefixWith` "quote"

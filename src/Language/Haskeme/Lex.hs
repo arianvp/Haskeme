@@ -69,7 +69,7 @@ decimal = T.decimal lexer
 hexadecimal = T.hexadecimal lexer
 octal = T.octal lexer
 bool :: Parser Bool
-bool = (== 't') <$> (char '#' *> oneOf "tf")
+bool = (== 't') <$> (char '#' *> oneOf "tf" <?> "#t or #f")
 symbol = T.symbol lexer
 lexeme = T.lexeme lexer
 whiteSpace = T.whiteSpace lexer
