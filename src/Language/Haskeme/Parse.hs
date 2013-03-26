@@ -1,52 +1,55 @@
 module Language.Haskeme.Parse
-(
-parser
-, dottedList
+( parse
 ) where
 
+import           Control.Applicative  (pure, (<|>), (*>), (<$>), (<*), (<*>))
+import           Language.Haskeme.AST
 import qualified Language.Haskeme.Lex as L
-import Language.Haskeme.AST
-import Text.Parsec as P
-import Text.Parsec.String 
-import Control.Applicative ((<$>), (<*>), (*>), (<*))
+import qualified Text.Parsec as P
+import           Text.Parsec.String
 
 -- literals
 bool, integer, stringLiteral, atom :: Parser Expr
 bool          = Bool    <$> L.bool
 integer       = Integer <$> L.integer
 stringLiteral = String  <$> L.stringLiteral
-atom          = Atom    <$> L.identifier
+atom          = Atom    <$> (L.identifier <|> ((:[]) <$> L.builtIn))
 
 -- listlikes
 list, vector, dottedList :: Parser Expr
-list       = L.parens       (List       <$> (expr `sepBy` L.whiteSpace))
-vector     = L.vectorParens (Vector     <$> (expr `sepBy` L.whiteSpace))
-dottedList = L.parens       (DottedList <$> (expr `endBy` L.whiteSpace)
-                                        <*> (L.dot *> expr))
+list' :: Parser [Expr]
+list'       = L.parens $ expr `P.sepBy` L.whiteSpace
+list        = List    <$> list'
+vector      = Vector  <$> (L.reservedOp "#" *> list')
+dottedList  = L.parens $ DottedList <$> expr `P.endBy` L.whiteSpace
+                                    <*> (L.dot *> expr)
 -- quotes
 quote, quasiquote, unquote, unquoteSplicing :: Parser Expr
-quote            = L.apostrophe  `prefixWith` "quote"
-quasiquote       = L.backtick    `prefixWith` "quasiquote"
-unquote          = L.comma       `prefixWith` "unquote"
-unquoteSplicing  = P.string ",@" `prefixWith` "unquote-splicing"
+quote            = (L.reservedOp "'")  `prefixWith` "quote"
+quasiquote       = (L.reservedOp "`")  `prefixWith` "quasiquote"
+unquote          = (L.reservedOp ",")  `prefixWith` "unquote"
+unquoteSplicing  = (L.reservedOp ",@") `prefixWith` "unquote-splicing"
 
 a `prefixWith` b = List . ([Atom b] ++) . (:[]) <$> (a *> expr)
 
 expr :: Parser Expr
-expr = quote          
-    <|> quasiquote     
-    <|> try unquoteSplicing
-    <|> unquote        
-    <|> try list
+expr = quote
+    <|> P.try bool    -- # is also used for vectors. 
+    <|> quasiquote
+    <|> unquote
+    <|> unquoteSplicing
+    <|> list
     <|> dottedList
-    <|> try vector
+    <|> vector
     <|> stringLiteral
     <|> integer
-    <|> bool
     <|> atom
 
-parser = L.whiteSpace *> (P.many expr) <* P.eof
+parser = L.whiteSpace *> (expr) <* P.eof
 
-
+parse :: String -> Expr
+parse input = case P.parse parser "Haskeme" input of
+                   Left err  -> Error $ "No match: " ++ show err
+                   Right val -> val
 
 
