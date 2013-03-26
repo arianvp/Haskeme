@@ -21,11 +21,6 @@ module Language.Haskeme.Lex
 , semi
 , comma
 , colon
-, apostrophe
-, backtick
-, hashtag
-, splicer
-, dot
 , builtIn
 )
 where

@@ -1,5 +1,6 @@
-module Language.Haskeme.AST(
-Expr (..)
+module Language.Haskeme.AST
+( Expr (..)
+, unwords'
 ) where
 
 data Expr = Bool Bool
@@ -9,9 +10,8 @@ data Expr = Bool Bool
           | List [Expr]
           | Vector [Expr]
           | DottedList [Expr] Expr
-          | Error String
-
-instance Show Expr where
+          deriving Show
+{-- instance Show Expr where
     show (Bool True)      = "#t"
     show (Bool False)     = "#f"
     show (String s)       = "\"" ++ s ++ "\""
@@ -20,7 +20,7 @@ instance Show Expr where
     show (List l)         = "(" ++ unwords' l ++ ")"
     show (Vector v)       = "#(" ++ unwords' v ++ ")"
     show (DottedList h t) = "(" ++ unwords' h ++ " . " ++ show t ++ ")"
-    show (Error s)        = s
+--}
 unwords' :: [Expr] -> String
 unwords' = unwords . map show
 
