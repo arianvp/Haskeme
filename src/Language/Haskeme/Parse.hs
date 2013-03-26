@@ -46,7 +46,7 @@ expr =  quote
     <|> dottedList
     <|> vector
     <|> stringLiteral
-    <|> integer
+    <|> P.try integer
     <|> atom
 
 

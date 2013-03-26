@@ -1,10 +1,13 @@
 module Main
 ( main
 ) where
-import Language.Haskeme.AST
-import Language.Haskeme.Parse
-import Text.Parsec (parseTest)
-import System.Environment
 
-main = do c <- getArgs
-          parseTest parser (c!!0)
+import           Language.Haskeme.Eval  (eval)
+import           System.Environment     (getArgs)
+
+
+
+main :: IO ()
+main = print . eval . head =<< getArgs
+
+

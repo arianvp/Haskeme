@@ -17,14 +17,15 @@ eval' val@(String  _)            = Right val
 eval' val@(Integer _)            = Right val
 eval' val@(Bool    _)            = Right val
 eval' (List [Atom "quote", val]) = Right val
+eval' (List $ (Atom func):args)  = mapM eval' args >>= apply func
 eval' val                        = Left $ Default $ show val
-{-- eval' (List (Atom func:args))    = apply func $ map eval' args
 
+apply :: String -> [Expr] -> Either SchemeError Expr
+apply func args = maybe (throwError $ NotFunction "Unrecognized primitive function" func)
+                        ($ args)
+                        (lookup func primitives)
 
-apply :: String -> [Expr] -> Expr
-apply func args = maybe (Bool False) ($ args) $ lookup func primitives
-
-primitives :: [(String, [Expr] -> Expr)]
+primitives :: [(String, [Expr] -> Either SchemeError Expr)]
 primitives = [("+"          , numericBinOp (+))
              ,("-"          , numericBinOp (-))
              ,("*"          , numericBinOp (*))
@@ -33,9 +34,11 @@ primitives = [("+"          , numericBinOp (+))
              ,("quotient"   , numericBinOp quot)
              ,("remainder"  , numericBinOp rem)]
 
-numericBinOp :: (Integer -> Integer -> Integer) -> [Expr] -> Expr
-numericBinOp op params = Integer $ foldl1 op $ map unpackInt params
+numericBinOp :: (Integer -> Integer -> Integer) -> [Expr] -> Either SchemeError Expr
+numericBinOp op one@[_] = throwError $ NumArgs 2 one
+numericBinOp op params  = (mapM unpackInt params) >>= return . Integer . foldl1 op
+unpackInt :: Expr -> Either SchemeError Integer
+unpackInt (Integer n) = return n
+unpackInt (List [n]) = unpackInt n
+unpackInt notNum = throwError $ TypeMismatch "Integer" notNum
 
-unpackInt :: Expr -> Integer
-unpackInt (Integer n) = n
---}
