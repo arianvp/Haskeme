@@ -10,7 +10,7 @@ author: Arian van Putten
 data-dir: ""
  
 executable Haskeme
-    build-depends: base ==4.5.*, parsec -any
+    build-depends: base ==4.5.*, parsec -any, mtl
     hs-source-dirs: src
     main-is: Main.hs
     buildable: True

@@ -1,5 +1,6 @@
 module Language.Haskeme.Error
 ( throwError
+, catchError
 , SchemeError (..)
 ) where
 import Text.Parsec.Error (ParseError)

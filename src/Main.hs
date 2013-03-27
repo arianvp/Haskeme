@@ -3,11 +3,10 @@ module Main
 ) where
 
 import           Language.Haskeme.Eval  (eval)
+import           Language.Haskeme.Error
 import           System.Environment     (getArgs)
 
 
 
 main :: IO ()
-main = print . eval . head =<< getArgs
-
-
+main = (either print print) . eval . head =<< getArgs

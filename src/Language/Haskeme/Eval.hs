@@ -35,6 +35,7 @@ primitives = [("+"          , numericBinOp (+))
              ,("remainder"  , numericBinOp rem)]
 
 numericBinOp :: (Integer -> Integer -> Integer) -> [Expr] -> Either SchemeError Expr
+numericBinOp op []      = throwError $ NumArgs 2 [(Atom "none")]
 numericBinOp op one@[_] = throwError $ NumArgs 2 one
 numericBinOp op params  = (mapM unpackInt params) >>= return . Integer . foldl1 op
 unpackInt :: Expr -> Either SchemeError Integer
