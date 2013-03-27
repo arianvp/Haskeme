@@ -10,8 +10,8 @@ data Expr = Bool Bool
           | List [Expr]
           | Vector [Expr]
           | DottedList [Expr] Expr
-          deriving Show
-{-- instance Show Expr where
+--          deriving Show
+instance Show Expr where
     show (Bool True)      = "#t"
     show (Bool False)     = "#f"
     show (String s)       = "\"" ++ s ++ "\""

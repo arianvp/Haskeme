@@ -17,8 +17,8 @@ eval' val@(String  _)            = Right val
 eval' val@(Integer _)            = Right val
 eval' val@(Bool    _)            = Right val
 eval' (List [Atom "quote", val]) = Right val
-eval' (List $ (Atom func):args)  = mapM eval' args >>= apply func
-eval' val                        = Left $ Default $ show val
+eval' (List ((Atom func):args))  = mapM eval' args >>= apply func
+eval' val                        = Left $ Default $ "Cannot evaluate: " ++ show val
 
 apply :: String -> [Expr] -> Either SchemeError Expr
 apply func args = maybe (throwError $ NotFunction "Unrecognized primitive function" func)
