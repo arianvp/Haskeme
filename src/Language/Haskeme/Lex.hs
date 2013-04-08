@@ -1,27 +1,13 @@
 module Language.Haskeme.Lex
 ( identifier
-, reserved
-, operator
-, reservedOp
 , charLiteral
 , stringLiteral
-, natural
-, integer
-, float
-, naturalOrFloat
-, decimal
-, hexadecimal
-, octal
 , bool
 , symbol
-, lexeme
 , whiteSpace
 , parens
-, vectorParens
-, semi
-, comma
-, colon
 , builtIn
+, integer
 )
 where
 
@@ -30,58 +16,52 @@ import           Text.Parsec
 import           Text.Parsec.Language (emptyDef)
 import           Text.Parsec.String
 import qualified Text.Parsec.Token    as T
-
-lexer :: T.TokenParser ()
+import           Data.Char (digitToInt)
 lexer = T.makeTokenParser emptyDef
-        { T.commentLine     = ";"
-        , T.identStart      = initial
-        , T.identLetter     = subsequent
-        , T.reservedOpNames = [ "'"
-                              , "#"
-                              , ","
-                              , ",@"
-                              , "`"
-                              ]
-        , T.reservedNames   = [ "quote", "lambda", "if"
-                              , "set!", "begin", "cond", "and", "or", "case"
-                              , "let", "let*", "letrec", "do", "delay"
-                              , "quasiquote", "else", "=>", "define"
-                              , "unquote", "unquote-splicing"
-                              ]
-        }
-        where initial     = letter <|> initial'
-              initial'    = oneOf "!$%&*/:<=>?^_~"
-              subsequent  = initial <|> digit <|> subsequent'
-              subsequent' = oneOf"+-.@"
-              
+
 identifier :: Parser String
-identifier = T.identifier lexer
-reserved = T.reserved lexer
-operator = T.operator lexer
-reservedOp = T.reservedOp lexer
+identifier = lexeme $ (:) <$> initial <*> many subsequent
+           where initial     = letter <|> initial'
+                 initial'    = oneOf "!$%&*/:<=>?^_~"
+                 subsequent  = initial <|> digit <|> subsequent'
+                 subsequent' = oneOf "+-.@"
+
+
+
 charLiteral = T.charLiteral lexer
 stringLiteral = T.stringLiteral lexer
-natural = T.natural lexer
 
-integer =  (char '-') *> ((0-) <$> natural)
+
+natural =  char '0' *> pure 0
+       <|> number
+--integer = T.integer lexer
+integer =  lexeme $ (char '-') *> ((0-) <$> natural)
        <|> (char '+') *> natural
        <|> natural
 
-float = T.float lexer
-naturalOrFloat = T.naturalOrFloat lexer
-decimal = T.decimal lexer
-hexadecimal = T.hexadecimal lexer
-octal = T.octal lexer
+
+
+
 bool :: Parser Bool
-bool = (== 't') <$> (char '#' *> oneOf "tf" <?> "#t or #f")
+bool = lexeme $ (== 't') <$> (char '#' *> oneOf "tf" <?> "#t or #f")
+
+lexeme p = p <* whiteSpace
+
 symbol = T.symbol lexer
-lexeme = T.lexeme lexer
-whiteSpace = T.whiteSpace lexer
-parens = T.parens lexer
-vectorParens = between (symbol "#(") (char ')')
-semi = T.semi lexer
-comma = T.comma lexer
-colon = T.colon lexer
+
+whiteSpace :: Parser ()
+whiteSpace  = skipMany (simpleSpace <|> comment)
+            where simpleSpace = skipMany1 space
+                  comment :: Parser ()
+                  comment     = char ';' *> (skipMany $ satisfy (/= '\n'))
+
+parens = between (symbol "(") (symbol ")")
+
+number :: Parser Integer
+number =  lexeme $ do digits <- many1 digit
+                      let n = foldl (\x d -> 10*x + toInteger (digitToInt d)) 0 digits
+                      seq n $ return n
+
 
 builtIn :: Parser Char
 builtIn = oneOf "+-/*"

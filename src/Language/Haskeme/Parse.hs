@@ -20,19 +20,16 @@ stringLiteral = String  <$> L.stringLiteral
 atom          = Atom    <$> (L.identifier <|> ((:[]) <$> L.builtIn))
 
 -- listlikes
-list, vector, dottedList :: Parser Expr
-list' :: Parser [Expr]
-list'       = L.parens $ expr `P.sepBy` L.whiteSpace
-list        = List    <$> list'
-vector      = Vector  <$> (L.reservedOp "#" *> list')
-dottedList  = L.parens $ DottedList <$> expr `P.endBy` L.whiteSpace
-                                    <*> (L.reservedOp "." *> expr)
--- quotes
+list,dottedList :: Parser Expr
+list        = L.parens $ List       <$> P.many expr
+dottedList  = L.parens $ DottedList <$> P.manyTill expr (L.symbol ".")
+                                    <*> expr
+
 quote, quasiquote, unquote, unquoteSplicing :: Parser Expr
-quote            = (L.reservedOp "'")  `prefixWith` "quote"
-quasiquote       = (L.reservedOp "`")  `prefixWith` "quasiquote"
-unquote          = (L.reservedOp ",")  `prefixWith` "unquote"
-unquoteSplicing  = (L.reservedOp ",@") `prefixWith` "unquote-splicing"
+quote            = (L.symbol "'")  `prefixWith` "quote"
+quasiquote       = (L.symbol "`")  `prefixWith` "quasiquote"
+unquote          = (L.symbol ",")  `prefixWith` "unquote"
+unquoteSplicing  = (L.symbol ",@") `prefixWith` "unquote-splicing"
 
 a `prefixWith` b = List . ([Atom b] ++) . (:[]) <$> (a *> expr)
 
@@ -40,11 +37,10 @@ expr :: Parser Expr
 expr =  quote
     <|> P.try bool    -- # is also used for vectors.
     <|> quasiquote
+    <|> P.try unquoteSplicing
     <|> unquote
-    <|> unquoteSplicing
-    <|> list
+    <|> P.try list
     <|> dottedList
-    <|> vector
     <|> stringLiteral
     <|> P.try integer
     <|> atom
