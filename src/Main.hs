@@ -18,8 +18,6 @@ readPrompt :: String -> IO String
 readPrompt prompt = flushStr prompt >> getLine
 
 until_ :: Monad m => (t -> Bool) -> m t -> (t -> m a) -> m ()
-until pred prompt action
-	| pred 
 until_ pred prompt action = do 
   result <- prompt
   if pred result 
