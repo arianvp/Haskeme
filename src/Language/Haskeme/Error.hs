@@ -5,7 +5,7 @@ module Language.Haskeme.Error
 ) where
 import Text.Parsec.Error (ParseError)
 import Control.Monad.Error 
-import Language.Haskeme.AST (Expr, unwords')
+import Language.Haskeme.AST (Expr)
 
 
 data SchemeError = Parser ParseError
@@ -26,7 +26,7 @@ instance Show SchemeError where
     show (BadSpecialForm message form)      = message ++ ": " ++ show form
     show (NotFunction message function)     = message ++ ": " ++ show function
     show (NumArgs expected found)           = "Expected " ++ show expected
-                                                ++ " arguments; found values " ++ unwords' found
+                                                ++ " arguments; found values " ++ (unwords . map show) found
     show (TypeMismatch expected found)      = "Invalid type: expected " ++ expected ++ ", found "
                                                 ++ show found
     show (Parser error)                     = "Parse error at " ++ show error

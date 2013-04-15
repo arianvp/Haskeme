@@ -3,12 +3,12 @@ module Language.Haskeme.Parse
 , ParseError
 ) where
 
-import           Control.Applicative  (pure, (*>), (<$>), (<*), (<*>), (<|>))
+import           Control.Applicative    (pure, (*>), (<$>), (<*), (<*>), (<|>))
 import           Language.Haskeme.AST
-import qualified Language.Haskeme.Lex as L
 import qualified Language.Haskeme.Error as E (SchemeError (..), throwError)
-import qualified Text.Parsec          as P hiding ((<|>))
-import           Text.Parsec.Error    (ParseError)
+import qualified Language.Haskeme.Lex   as L
+import qualified Text.Parsec            as P hiding ((<|>))
+import           Text.Parsec.Error      (ParseError)
 import           Text.Parsec.String
 
 
@@ -17,7 +17,7 @@ bool, integer, stringLiteral, atom :: Parser Expr
 bool          = Bool    <$> L.bool
 integer       = Integer <$> L.integer
 stringLiteral = String  <$> L.stringLiteral
-atom          = Atom    <$> (L.identifier <|> ((:[]) <$> L.builtIn))
+atom          = Atom    <$> (L.identifier <|> L.builtIn)
 
 -- listlikes
 list,dottedList :: Parser Expr
@@ -35,7 +35,7 @@ a `prefixWith` b = List . ([Atom b] ++) . (:[]) <$> (a *> expr)
 
 expr :: Parser Expr
 expr =  quote
-    <|> P.try bool    -- # is also used for vectors.
+    <|> bool
     <|> quasiquote
     <|> P.try unquoteSplicing
     <|> unquote

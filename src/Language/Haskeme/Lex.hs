@@ -12,11 +12,12 @@ module Language.Haskeme.Lex
 where
 
 import           Control.Applicative  hiding (many, (<|>))
+import           Data.Char            (digitToInt)
 import           Text.Parsec
 import           Text.Parsec.Language (emptyDef)
 import           Text.Parsec.String
 import qualified Text.Parsec.Token    as T
-import           Data.Char (digitToInt)
+
 lexer = T.makeTokenParser emptyDef
 
 identifier :: Parser String
@@ -26,15 +27,17 @@ identifier = lexeme $ (:) <$> initial <*> many subsequent
                  subsequent  = initial <|> digit <|> subsequent'
                  subsequent' = oneOf "+-.@"
 
-
-
+charLiteral :: Parser Char
 charLiteral = T.charLiteral lexer
+
+stringLiteral :: Parser String
 stringLiteral = T.stringLiteral lexer
 
-
+natural :: Parser Integer
 natural =  char '0' *> pure 0
        <|> number
---integer = T.integer lexer
+
+integer :: Parser Integer
 integer =  lexeme $ (char '-') *> ((0-) <$> natural)
        <|> (char '+') *> natural
        <|> natural
@@ -45,8 +48,10 @@ integer =  lexeme $ (char '-') *> ((0-) <$> natural)
 bool :: Parser Bool
 bool = lexeme $ (== 't') <$> (char '#' *> oneOf "tf" <?> "#t or #f")
 
+lexeme :: Parser a -> Parser a
 lexeme p = p <* whiteSpace
 
+symbol :: String -> Parser String
 symbol = T.symbol lexer
 
 whiteSpace :: Parser ()
@@ -55,6 +60,7 @@ whiteSpace  = skipMany (simpleSpace <|> comment)
                   comment :: Parser ()
                   comment     = char ';' *> (skipMany $ satisfy (/= '\n'))
 
+parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
 
 number :: Parser Integer
@@ -63,5 +69,5 @@ number =  lexeme $ do digits <- many1 digit
                       seq n $ return n
 
 
-builtIn :: Parser Char
-builtIn = oneOf "+-/*"
+builtIn :: Parser String
+builtIn = lexeme $ (:[]) <$> oneOf "+-/*"
