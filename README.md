@@ -8,6 +8,11 @@ Haskeme is a LISP-like language which closely resembles Scheme. The lexer/parser
 * quoting
 * numeric operations
 * boolean operations
+
+## Style guide
+* We're implementing a context-free grammar. That means, context free code. So we shall avoid monads as much as possible.
+  Instead, we will use  Control.Applicative and Control.Alternative as much as possible.
+
 ## Usage
 ## License
 
